@@ -1,1 +1,6 @@
 credentials.json
+build
+.gradle
+gradle
+.idea
+tokens

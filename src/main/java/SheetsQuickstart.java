@@ -61,6 +61,17 @@ public class SheetsQuickstart {
         return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
     }
 
+    public static void adjustTheDataInTheResponse(ValueRange response) {
+        List<List<Object>> values = response.getValues();
+        int numberOfColumns = 7;
+        for (List<Object> value : values) {
+            while (value.size() < numberOfColumns) {
+                value.add(new String());
+            }
+        }
+        response.setValues(values);
+    }
+
     /**
      * Prints the names and majors of students in a sample spreadsheet:
      * https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit
@@ -70,7 +81,7 @@ public class SheetsQuickstart {
         final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
         final String spreadsheetId = "1yfUiM2l0mJLdDUY3T1meGf9G7GHVjcKhzqCp2MRPVFk";
 //        final String range = "Class Data!A2:E";
-        final String range = "A:A";
+        final String range = "A:G";
         Sheets service =
                 new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
                         .setApplicationName(APPLICATION_NAME)
@@ -83,6 +94,7 @@ public class SheetsQuickstart {
             System.out.println("No data found.");
         } else {
 //            System.out.println("Name, Major");
+            adjustTheDataInTheResponse(response);
             for (List row : values) {
                 // Print columns A and E, which correspond to indices 0 and 4.
 //                System.out.printf("%s, %s\n", row.get(0), row.get(4));

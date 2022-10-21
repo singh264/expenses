@@ -61,9 +61,18 @@ public class SheetsQuickstart {
         return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
     }
 
+    public static int obtainTheNumberOfColumnsInTheSpreadsheet(ValueRange response) {
+        String range = response.getRange();
+        String[] data = range.split(":");
+        char firstColumn = data[0].charAt(data[0].length() - 2);
+        char lastColumn = data[1].charAt(0);
+        int numberOfColumns = lastColumn - firstColumn + 1;
+        return numberOfColumns;
+    }
+
     public static void adjustTheDataInTheResponse(ValueRange response) {
         List<List<Object>> values = response.getValues();
-        int numberOfColumns = 7;
+        int numberOfColumns = obtainTheNumberOfColumnsInTheSpreadsheet(response);
         for (List<Object> value : values) {
             while (value.size() < numberOfColumns) {
                 value.add(new String());

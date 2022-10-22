@@ -8,15 +8,24 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
+import com.google.api.services.sheets.v4.model.CellData;
+import com.google.api.services.sheets.v4.model.GridData;
+import com.google.api.services.sheets.v4.model.RowData;
+import com.google.api.services.sheets.v4.model.Sheet;
+import com.google.api.services.sheets.v4.model.Spreadsheet;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.SheetsScopes;
-import com.google.api.services.sheets.v4.model.ValueRange;
+
 import java.io.FileNotFoundException;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.security.GeneralSecurityException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -61,6 +70,34 @@ public class SheetsQuickstart {
         return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
     }
 
+    public static void findTheDataWithTheStrikethroughInTheSpreadsheet(Spreadsheet spreadsheet) {
+        Path fileName = Path.of("/Users/singh264/git/expenses/dataWithTheStrikethroughInTheSpreadsheet.txt");
+        try {
+            Files.deleteIfExists(fileName);
+            Files.createFile(fileName);
+            Files.writeString(fileName, "rowNumber, columnNumber, data\n", StandardOpenOption.WRITE);
+            Sheet sheet = spreadsheet.getSheets().get(0);
+            GridData gridData = sheet.getData().get(0);
+            List<RowData> rows = gridData.getRowData();
+            int rowNumber = 1;
+            for (RowData row : rows) {
+                List<CellData> rowData = row.getValues();
+                if (rowData != null) {
+                    int columnNumber = 1;
+                    for (CellData cellData : rowData) {
+                        if (cellData.getEffectiveFormat() != null && cellData.getEffectiveFormat().getTextFormat().getStrikethrough()) {
+                            Files.writeString(fileName, String.format("%d, %d, %s\n", rowNumber, columnNumber, cellData.getFormattedValue()), StandardOpenOption.APPEND);
+                        }
+                        columnNumber++;
+                    }
+                }
+                rowNumber++;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * Prints the names and majors of students in a sample spreadsheet:
      * https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit
@@ -69,25 +106,25 @@ public class SheetsQuickstart {
         // Build a new authorized API client service.
         final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
         final String spreadsheetId = "1yfUiM2l0mJLdDUY3T1meGf9G7GHVjcKhzqCp2MRPVFk";
-//        final String range = "Class Data!A2:E";
-        final String range = "A:A";
+        final String range = "A:G";
         Sheets service =
                 new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
                         .setApplicationName(APPLICATION_NAME)
                         .build();
-        ValueRange response = service.spreadsheets().values()
-                .get(spreadsheetId, range)
+        Spreadsheet spreadsheet = service.spreadsheets()
+                .get(spreadsheetId)
+                .setRanges(List.of(range))
+                .setIncludeGridData(true)
                 .execute();
-        List<List<Object>> values = response.getValues();
-        if (values == null || values.isEmpty()) {
-            System.out.println("No data found.");
-        } else {
-//            System.out.println("Name, Major");
-            for (List row : values) {
-                // Print columns A and E, which correspond to indices 0 and 4.
-//                System.out.printf("%s, %s\n", row.get(0), row.get(4));
-                System.out.printf("%s\n", row.get(0));
+        Sheet sheet = spreadsheet.getSheets().get(0);
+        GridData gridData = sheet.getData().get(0);
+        List<RowData> rows = gridData.getRowData();
+        for (RowData row : rows) {
+            List<CellData> rowData = row.getValues();
+            if (rowData != null && rowData.get(0).getFormattedValue() != null) {
+                System.out.println(rowData.get(0).getFormattedValue());
             }
         }
+        findTheDataWithTheStrikethroughInTheSpreadsheet(spreadsheet);
     }
 }

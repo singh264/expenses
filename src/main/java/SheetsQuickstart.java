@@ -29,7 +29,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class SheetsQuickstart {
+import javafx.application.Application;
+import javafx.scene.Scene;
+import javafx.scene.chart.PieChart;
+import javafx.stage.Stage;
+import javafx.scene.Group;
+import javafx.collections.FXCollections;
+
+public class SheetsQuickstart extends Application {
     private static final String APPLICATION_NAME = "Google Sheets API Java Quickstart";
     private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
     private static final String TOKENS_DIRECTORY_PATH = "tokens";
@@ -98,6 +105,10 @@ public class SheetsQuickstart {
         }
     }
 
+    public static void displayThePieChart() {
+        launch();
+    }
+
     /**
      * Prints the names and majors of students in a sample spreadsheet:
      * https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit
@@ -126,5 +137,41 @@ public class SheetsQuickstart {
             }
         }
         findTheDataWithTheStrikethroughInTheSpreadsheet(spreadsheet);
+        displayThePieChart();
+    }
+
+    @Override
+    public void start(Stage stage) {
+        // set title for the stage
+        stage.setTitle("Creating Pie Chart");
+
+        // piechart data
+        PieChart.Data data[] = new PieChart.Data[5];
+
+        // string and integer data
+        String status[] = {"Correct Answer", "Wrong Answer",
+                "Compilation Error", "Runtime Error",
+                "Others" };
+
+        int values[] = {20, 30, 10, 4, 2};
+
+        for (int i = 0; i < 5; i++) {
+            data[i] = new PieChart.Data(status[i], values[i]);
+        }
+
+        // create a pie chart
+        PieChart pie_chart = new
+                PieChart(FXCollections.observableArrayList(data));
+
+        // create a Group
+        Group group = new Group(pie_chart);
+
+        // create a scene
+        Scene scene = new Scene(group, 500, 300);
+
+        // set the scene
+        stage.setScene(scene);
+
+        stage.show();
     }
 }

@@ -27,7 +27,9 @@ import java.nio.file.StandardOpenOption;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -137,6 +139,42 @@ public class SheetsQuickstart extends Application {
         return nameOfTheColumns;
     }
 
+    public static Set<String> findTheKindsOfTheExpense(Spreadsheet spreadsheet) {
+        Set<String> kindsOfTheExpense = new HashSet<>();
+        List<String> nameOfTheColumns = obtainTheNameOfTheColumns(spreadsheet);
+        int kindOfExpenseColumnIndex = nameOfTheColumns.indexOf("Kind");
+        Sheet sheet = spreadsheet.getSheets().get(0);
+        GridData gridData = sheet.getData().get(0);
+        List<RowData> rows = gridData.getRowData();
+        boolean foundTheFirstRow = false;
+        for (RowData row : rows) {
+            List<CellData> rowData = row.getValues();
+            if (rowData != null) {
+                if (!foundTheFirstRow) {
+                    boolean isTheRowStruckthrough = true;
+                    for (CellData cellData : rowData) {
+                        if (cellData.getEffectiveFormat() != null && !cellData.getEffectiveFormat().getTextFormat().getStrikethrough()) {
+                            isTheRowStruckthrough = false;
+                            break;
+                        }
+                    }
+                    if (!isTheRowStruckthrough) {
+                        foundTheFirstRow = true;
+                        continue;
+                    }
+                }
+                if (rowData.size() > kindOfExpenseColumnIndex) {
+                    CellData cellData = rowData.get(kindOfExpenseColumnIndex);
+                    if (cellData.getEffectiveFormat() != null && !cellData.getEffectiveFormat().getTextFormat().getStrikethrough()) {
+                        String kindOfTheExpense = cellData.getFormattedValue();
+                        kindsOfTheExpense.add(kindOfTheExpense);
+                    }
+                }
+            }
+        }
+        return kindsOfTheExpense;
+    }
+
     /**
      * Prints the names and majors of students in a sample spreadsheet:
      * https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit
@@ -167,6 +205,8 @@ public class SheetsQuickstart extends Application {
         findTheDataWithTheStrikethroughInTheSpreadsheet(spreadsheet);
         List<String> nameOfTheColumns = obtainTheNameOfTheColumns(spreadsheet);
         System.out.println(nameOfTheColumns);
+        Set<String> kindsOfTheExpense = findTheKindsOfTheExpense(spreadsheet);
+        System.out.println(kindsOfTheExpense);
         displayThePieChart();
     }
 

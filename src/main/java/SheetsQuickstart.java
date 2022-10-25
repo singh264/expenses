@@ -109,6 +109,34 @@ public class SheetsQuickstart extends Application {
         launch();
     }
 
+    public static List<String> obtainTheNameOfTheColumns(Spreadsheet spreadsheet) {
+        List<String> nameOfTheColumns = new ArrayList<>();
+        Sheet sheet = spreadsheet.getSheets().get(0);
+        GridData gridData = sheet.getData().get(0);
+        List<RowData> rows = gridData.getRowData();
+        for (RowData row : rows) {
+            List<CellData> rowData = row.getValues();
+            if (rowData != null) {
+                boolean isTheRowStruckthrough = true;
+                for (CellData cellData : rowData) {
+                    if (cellData.getEffectiveFormat() != null && !cellData.getEffectiveFormat().getTextFormat().getStrikethrough()) {
+                        isTheRowStruckthrough = false;
+                        break;
+                    }
+                }
+                if (!isTheRowStruckthrough) {
+                    for (CellData cellData : rowData) {
+                        if (cellData.getEffectiveFormat() != null && !cellData.getEffectiveFormat().getTextFormat().getStrikethrough()) {
+                            nameOfTheColumns.add(cellData.getFormattedValue());
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+        return nameOfTheColumns;
+    }
+
     /**
      * Prints the names and majors of students in a sample spreadsheet:
      * https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit
@@ -137,6 +165,8 @@ public class SheetsQuickstart extends Application {
             }
         }
         findTheDataWithTheStrikethroughInTheSpreadsheet(spreadsheet);
+        List<String> nameOfTheColumns = obtainTheNameOfTheColumns(spreadsheet);
+        System.out.println(nameOfTheColumns);
         displayThePieChart();
     }
 

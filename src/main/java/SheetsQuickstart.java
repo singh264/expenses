@@ -27,8 +27,10 @@ import java.nio.file.StandardOpenOption;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javafx.application.Application;
@@ -175,6 +177,59 @@ public class SheetsQuickstart extends Application {
         return kindsOfTheExpense;
     }
 
+    public static Map<String, Double> findTheValuesOfThePieChart(Spreadsheet spreadsheet) {
+        Map<String, Double> valuesOfThePieChart = new HashMap<>();
+        Set<String> kindsOfTheExpense = findTheKindsOfTheExpense(spreadsheet);
+        for (String kindOfTheExpense : kindsOfTheExpense) {
+            valuesOfThePieChart.put(kindOfTheExpense, 0D);
+        }
+        List<String> nameOfTheColumns = obtainTheNameOfTheColumns(spreadsheet);
+        int kindOfTheExpenseColumnIndex = nameOfTheColumns.indexOf("Kind");
+        int priceInOfTheExpenseColumnIndex = nameOfTheColumns.indexOf("Price in");
+        int priceOutOfTheExpenseColumnIndex = nameOfTheColumns.indexOf("Price out");
+        Sheet sheet = spreadsheet.getSheets().get(0);
+        GridData gridData = sheet.getData().get(0);
+        List<RowData> rows = gridData.getRowData();
+        boolean foundTheFirstRow = false;
+        for (RowData row : rows) {
+            List<CellData> rowData = row.getValues();
+            if (rowData != null) {
+                if (!foundTheFirstRow) {
+                    boolean isTheRowStruckthrough = true;
+                    for (CellData cellData : rowData) {
+                        if (cellData.getEffectiveFormat() != null && !cellData.getEffectiveFormat().getTextFormat().getStrikethrough()) {
+                            isTheRowStruckthrough = false;
+                            break;
+                        }
+                    }
+                    if (!isTheRowStruckthrough) {
+                        foundTheFirstRow = true;
+                        continue;
+                    }
+                }
+                if (rowData.size() > kindOfTheExpenseColumnIndex) {
+                    CellData cellData = rowData.get(kindOfTheExpenseColumnIndex);
+                    if (cellData.getEffectiveFormat() != null && !cellData.getEffectiveFormat().getTextFormat().getStrikethrough()) {
+                        String kindOfTheExpense = cellData.getFormattedValue();
+                        Double value = valuesOfThePieChart.get(kindOfTheExpense);
+                        cellData = rowData.get(priceInOfTheExpenseColumnIndex);
+                        if (cellData.getEffectiveFormat() != null && !cellData.getEffectiveFormat().getTextFormat().getStrikethrough() && cellData.getFormattedValue() != null && !cellData.getFormattedValue().isEmpty()) {
+                            Double priceInOfTheExpense = Double.valueOf(cellData.getFormattedValue().replace(",", ""));
+                            value += priceInOfTheExpense;
+                        }
+                        cellData = rowData.get(priceOutOfTheExpenseColumnIndex);
+                        if (cellData.getEffectiveFormat() != null && !cellData.getEffectiveFormat().getTextFormat().getStrikethrough() && cellData.getFormattedValue() != null && !cellData.getFormattedValue().isEmpty()) {
+                            Double priceOutOfTheExpense = Double.valueOf(cellData.getFormattedValue().replace(",", ""));
+                            value += priceOutOfTheExpense;
+                        }
+                        valuesOfThePieChart.put(kindOfTheExpense, value);
+                    }
+                }
+            }
+        }
+        return valuesOfThePieChart;
+    }
+
     /**
      * Prints the names and majors of students in a sample spreadsheet:
      * https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit
@@ -207,6 +262,8 @@ public class SheetsQuickstart extends Application {
         System.out.println(nameOfTheColumns);
         Set<String> kindsOfTheExpense = findTheKindsOfTheExpense(spreadsheet);
         System.out.println(kindsOfTheExpense);
+        Map<String, Double> findTheValuesOfThePieChart = findTheValuesOfThePieChart(spreadsheet);
+        System.out.println(findTheValuesOfThePieChart);
         displayThePieChart();
     }
 

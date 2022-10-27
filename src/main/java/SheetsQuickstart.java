@@ -230,6 +230,39 @@ public class SheetsQuickstart extends Application {
         return valuesOfThePieChart;
     }
 
+    public void lesson() throws IOException, GeneralSecurityException {
+        // Build a new authorized API client service.
+        final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
+        final String spreadsheetId = "1yfUiM2l0mJLdDUY3T1meGf9G7GHVjcKhzqCp2MRPVFk";
+        final String range = "A:G";
+        Sheets service =
+                new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
+                        .setApplicationName(APPLICATION_NAME)
+                        .build();
+        Spreadsheet spreadsheet = service.spreadsheets()
+                .get(spreadsheetId)
+                .setRanges(List.of(range))
+                .setIncludeGridData(true)
+                .execute();
+        Sheet sheet = spreadsheet.getSheets().get(0);
+        GridData gridData = sheet.getData().get(0);
+        List<RowData> rows = gridData.getRowData();
+        for (RowData row : rows) {
+            List<CellData> rowData = row.getValues();
+            if (rowData != null && rowData.get(0).getFormattedValue() != null) {
+                System.out.println(rowData.get(0).getFormattedValue());
+            }
+        }
+        findTheDataWithTheStrikethroughInTheSpreadsheet(spreadsheet);
+        List<String> nameOfTheColumns = obtainTheNameOfTheColumns(spreadsheet);
+        System.out.println(nameOfTheColumns);
+        Set<String> kindsOfTheExpense = findTheKindsOfTheExpense(spreadsheet);
+        System.out.println(kindsOfTheExpense);
+        Map<String, Double> findTheValuesOfThePieChart = findTheValuesOfThePieChart(spreadsheet);
+        System.out.println(findTheValuesOfThePieChart);
+        displayThePieChart();
+    }
+
     /**
      * Prints the names and majors of students in a sample spreadsheet:
      * https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit
@@ -268,37 +301,32 @@ public class SheetsQuickstart extends Application {
     }
 
     @Override
-    public void start(Stage stage) {
-        // set title for the stage
-        stage.setTitle("Creating Pie Chart");
-
-        // piechart data
-        PieChart.Data data[] = new PieChart.Data[5];
-
-        // string and integer data
-        String status[] = {"Correct Answer", "Wrong Answer",
-                "Compilation Error", "Runtime Error",
-                "Others" };
-
-        int values[] = {20, 30, 10, 4, 2};
-
-        for (int i = 0; i < 5; i++) {
-            data[i] = new PieChart.Data(status[i], values[i]);
+    public void start(Stage stage) throws IOException, GeneralSecurityException {
+        // Build a new authorized API client service.
+        final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
+        final String spreadsheetId = "1yfUiM2l0mJLdDUY3T1meGf9G7GHVjcKhzqCp2MRPVFk";
+        final String range = "A:G";
+        Sheets service =
+                new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
+                        .setApplicationName(APPLICATION_NAME)
+                        .build();
+        Spreadsheet spreadsheet = service.spreadsheets()
+                .get(spreadsheetId)
+                .setRanges(List.of(range))
+                .setIncludeGridData(true)
+                .execute();
+        Map<String, Double> valuesOfThePieChart = findTheValuesOfThePieChart(spreadsheet);
+        PieChart.Data pieChartData [] = new PieChart.Data[valuesOfThePieChart.size()];
+        int index = 0;
+        for (String key : valuesOfThePieChart.keySet()) {
+            double value = valuesOfThePieChart.get(key);
+            pieChartData[index] = new PieChart.Data(key, value);
+            index++;
         }
-
-        // create a pie chart
-        PieChart pie_chart = new
-                PieChart(FXCollections.observableArrayList(data));
-
-        // create a Group
-        Group group = new Group(pie_chart);
-
-        // create a scene
+        stage.setTitle("Expenses");
+        Group group = new Group(new PieChart(FXCollections.observableArrayList(pieChartData)));
         Scene scene = new Scene(group, 500, 300);
-
-        // set the scene
         stage.setScene(scene);
-
         stage.show();
     }
 }

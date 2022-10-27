@@ -230,39 +230,6 @@ public class SheetsQuickstart extends Application {
         return valuesOfThePieChart;
     }
 
-    public void lesson() throws IOException, GeneralSecurityException {
-        // Build a new authorized API client service.
-        final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-        final String spreadsheetId = "1yfUiM2l0mJLdDUY3T1meGf9G7GHVjcKhzqCp2MRPVFk";
-        final String range = "A:G";
-        Sheets service =
-                new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
-                        .setApplicationName(APPLICATION_NAME)
-                        .build();
-        Spreadsheet spreadsheet = service.spreadsheets()
-                .get(spreadsheetId)
-                .setRanges(List.of(range))
-                .setIncludeGridData(true)
-                .execute();
-        Sheet sheet = spreadsheet.getSheets().get(0);
-        GridData gridData = sheet.getData().get(0);
-        List<RowData> rows = gridData.getRowData();
-        for (RowData row : rows) {
-            List<CellData> rowData = row.getValues();
-            if (rowData != null && rowData.get(0).getFormattedValue() != null) {
-                System.out.println(rowData.get(0).getFormattedValue());
-            }
-        }
-        findTheDataWithTheStrikethroughInTheSpreadsheet(spreadsheet);
-        List<String> nameOfTheColumns = obtainTheNameOfTheColumns(spreadsheet);
-        System.out.println(nameOfTheColumns);
-        Set<String> kindsOfTheExpense = findTheKindsOfTheExpense(spreadsheet);
-        System.out.println(kindsOfTheExpense);
-        Map<String, Double> findTheValuesOfThePieChart = findTheValuesOfThePieChart(spreadsheet);
-        System.out.println(findTheValuesOfThePieChart);
-        displayThePieChart();
-    }
-
     /**
      * Prints the names and majors of students in a sample spreadsheet:
      * https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit

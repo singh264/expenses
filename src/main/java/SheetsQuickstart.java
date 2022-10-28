@@ -36,6 +36,7 @@ import java.util.Set;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.chart.PieChart;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.scene.Group;
 import javafx.collections.FXCollections;
@@ -272,28 +273,35 @@ public class SheetsQuickstart extends Application {
         // Build a new authorized API client service.
         final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
         final String spreadsheetId = "1yfUiM2l0mJLdDUY3T1meGf9G7GHVjcKhzqCp2MRPVFk";
-        final String range = "A:G";
         Sheets service =
                 new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
                         .setApplicationName(APPLICATION_NAME)
                         .build();
-        Spreadsheet spreadsheet = service.spreadsheets()
-                .get(spreadsheetId)
-                .setRanges(List.of(range))
-                .setIncludeGridData(true)
-                .execute();
-        Map<String, Double> valuesOfThePieChart = findTheValuesOfThePieChart(spreadsheet);
-        PieChart.Data pieChartData [] = new PieChart.Data[valuesOfThePieChart.size()];
-        int index = 0;
-        for (String key : valuesOfThePieChart.keySet()) {
-            double value = valuesOfThePieChart.get(key);
-            pieChartData[index] = new PieChart.Data(key, value);
-            index++;
+        List<PieChart> pieCharts = new ArrayList<>();
+        int numberOfSheets = 4;
+        for (int sheetNumber = 1; sheetNumber <= numberOfSheets; sheetNumber++) {
+            final String range = String.format("Sheet%d!A:G", sheetNumber);
+            Spreadsheet spreadsheet = service.spreadsheets()
+                    .get(spreadsheetId)
+                    .setRanges(List.of(range))
+                    .setIncludeGridData(true)
+                    .execute();
+            Map<String, Double> valuesOfThePieChart = findTheValuesOfThePieChart(spreadsheet);
+            PieChart.Data pieChartData [] = new PieChart.Data[valuesOfThePieChart.size()];
+            int index = 0;
+            for (String key : valuesOfThePieChart.keySet()) {
+                double value = valuesOfThePieChart.get(key);
+                pieChartData[index] = new PieChart.Data(key, value);
+                index++;
+            }
+            pieCharts.add(new PieChart(FXCollections.observableArrayList(pieChartData)));
+        }
+        VBox vbox = new VBox();
+        for (PieChart pieChart: pieCharts){
+            vbox.getChildren().add(pieChart);
         }
         stage.setTitle("Expenses");
-        Group group = new Group(new PieChart(FXCollections.observableArrayList(pieChartData)));
-        Scene scene = new Scene(group, 500, 300);
-        stage.setScene(scene);
+        stage.setScene(new Scene(vbox, 5000, 3000));
         stage.show();
     }
 }

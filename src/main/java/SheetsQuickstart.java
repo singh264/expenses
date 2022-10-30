@@ -231,6 +231,32 @@ public class SheetsQuickstart extends Application {
         return valuesOfThePieChart;
     }
 
+    public static int findTheNumberOfSheetsInTheSpreadsheet(String spreadsheetId) {
+        int numberOfSheetsInTheSpreadsheet = 0;
+        try {
+            final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
+            Sheets service =
+                    new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
+                            .setApplicationName(APPLICATION_NAME)
+                            .build();
+            int sheetNumber = 1;
+            while (true) {
+                final String range = String.format("Sheet%d!A:G", sheetNumber);
+                service.spreadsheets()
+                        .get(spreadsheetId)
+                        .setRanges(List.of(range))
+                        .setIncludeGridData(true)
+                        .execute();
+                sheetNumber++;
+                numberOfSheetsInTheSpreadsheet++;
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        return numberOfSheetsInTheSpreadsheet;
+    }
+
     /**
      * Prints the names and majors of students in a sample spreadsheet:
      * https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit
@@ -265,6 +291,7 @@ public class SheetsQuickstart extends Application {
         System.out.println(kindsOfTheExpense);
         Map<String, Double> findTheValuesOfThePieChart = findTheValuesOfThePieChart(spreadsheet);
         System.out.println(findTheValuesOfThePieChart);
+        System.out.println(findTheNumberOfSheetsInTheSpreadsheet(spreadsheetId));
         displayThePieChart();
     }
 
@@ -278,7 +305,7 @@ public class SheetsQuickstart extends Application {
                         .setApplicationName(APPLICATION_NAME)
                         .build();
         List<PieChart> pieCharts = new ArrayList<>();
-        int numberOfSheets = 4;
+        int numberOfSheets = findTheNumberOfSheetsInTheSpreadsheet(spreadsheetId);
         for (int sheetNumber = 1; sheetNumber <= numberOfSheets; sheetNumber++) {
             final String range = String.format("Sheet%d!A:G", sheetNumber);
             Spreadsheet spreadsheet = service.spreadsheets()

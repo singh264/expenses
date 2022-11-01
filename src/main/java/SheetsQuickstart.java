@@ -114,26 +114,37 @@ public class SheetsQuickstart extends Application {
         launch();
     }
 
-    public static List<String> obtainTheNameOfTheColumns(Spreadsheet spreadsheet) {
-        List<String> nameOfTheColumns = new ArrayList<>();
+    public static List<RowData> obtainTheRowsOfTheSpreadsheet(Spreadsheet spreadsheet) {
         Sheet sheet = spreadsheet.getSheets().get(0);
         GridData gridData = sheet.getData().get(0);
-        List<RowData> rows = gridData.getRowData();
+        return gridData.getRowData();
+    }
+
+    public static boolean isTheCellStruckthrough(CellData cell) {
+        return cell.getEffectiveFormat() != null &&
+               cell.getEffectiveFormat().getTextFormat().getStrikethrough();
+    }
+
+    public static boolean isTheRowStruckthrough(List<CellData> cells) {
+        boolean isTheRowStruckthrough = true;
+        for (CellData cell : cells) {
+            if (!isTheCellStruckthrough(cell)) {
+                isTheRowStruckthrough = false;
+                break;
+            }
+        }
+        return isTheRowStruckthrough;
+    }
+
+    public static List<String> obtainTheNameOfTheColumns(Spreadsheet spreadsheet) {
+        List<String> nameOfTheColumns = new ArrayList<>();
+        List<RowData> rows = obtainTheRowsOfTheSpreadsheet(spreadsheet);
         for (RowData row : rows) {
-            List<CellData> rowData = row.getValues();
-            if (rowData != null) {
-                boolean isTheRowStruckthrough = true;
-                for (CellData cellData : rowData) {
-                    if (cellData.getEffectiveFormat() != null && !cellData.getEffectiveFormat().getTextFormat().getStrikethrough()) {
-                        isTheRowStruckthrough = false;
-                        break;
-                    }
-                }
-                if (!isTheRowStruckthrough) {
-                    for (CellData cellData : rowData) {
-                        if (cellData.getEffectiveFormat() != null && !cellData.getEffectiveFormat().getTextFormat().getStrikethrough()) {
-                            nameOfTheColumns.add(cellData.getFormattedValue());
-                        }
+            List<CellData> cells = row.getValues();
+            if (cells != null) {
+                if (!isTheRowStruckthrough(cells)) {
+                    for (CellData cell : cells) {
+                        nameOfTheColumns.add(cell.getFormattedValue());
                     }
                     break;
                 }

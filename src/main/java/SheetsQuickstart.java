@@ -45,6 +45,7 @@ public class SheetsQuickstart extends Application {
     private static final String APPLICATION_NAME = "Google Sheets API Java Quickstart";
     private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
     private static final String TOKENS_DIRECTORY_PATH = "tokens";
+    private static final String KIND_OF_EXPENSE_COLUMN_NAME = "Kind";
 
     /**
      * Global instance of the scopes required by this quickstart.
@@ -156,32 +157,22 @@ public class SheetsQuickstart extends Application {
     public static Set<String> findTheKindsOfTheExpense(Spreadsheet spreadsheet) {
         Set<String> kindsOfTheExpense = new HashSet<>();
         List<String> nameOfTheColumns = obtainTheNameOfTheColumns(spreadsheet);
-        int kindOfExpenseColumnIndex = nameOfTheColumns.indexOf("Kind");
-        Sheet sheet = spreadsheet.getSheets().get(0);
-        GridData gridData = sheet.getData().get(0);
-        List<RowData> rows = gridData.getRowData();
+        int kindOfExpenseColumnIndex = nameOfTheColumns.indexOf(KIND_OF_EXPENSE_COLUMN_NAME);
+        List<RowData> rows = obtainTheRowsOfTheSpreadsheet(spreadsheet);;
         boolean foundTheFirstRow = false;
         for (RowData row : rows) {
-            List<CellData> rowData = row.getValues();
-            if (rowData != null) {
+            List<CellData> cells = row.getValues();
+            if (cells != null) {
                 if (!foundTheFirstRow) {
-                    boolean isTheRowStruckthrough = true;
-                    for (CellData cellData : rowData) {
-                        if (cellData.getEffectiveFormat() != null && !cellData.getEffectiveFormat().getTextFormat().getStrikethrough()) {
-                            isTheRowStruckthrough = false;
-                            break;
-                        }
-                    }
-                    if (!isTheRowStruckthrough) {
+                    if (!isTheRowStruckthrough(cells)) {
                         foundTheFirstRow = true;
                         continue;
                     }
                 }
-                if (rowData.size() > kindOfExpenseColumnIndex) {
-                    CellData cellData = rowData.get(kindOfExpenseColumnIndex);
-                    if (cellData.getEffectiveFormat() != null && !cellData.getEffectiveFormat().getTextFormat().getStrikethrough()) {
-                        String kindOfTheExpense = cellData.getFormattedValue();
-                        kindsOfTheExpense.add(kindOfTheExpense);
+                if (cells.size() > kindOfExpenseColumnIndex) {
+                    CellData cell = cells.get(kindOfExpenseColumnIndex);
+                    if (!isTheCellStruckthrough(cell)) {
+                        kindsOfTheExpense.add(cell.getFormattedValue());
                     }
                 }
             }

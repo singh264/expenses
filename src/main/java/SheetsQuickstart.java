@@ -46,6 +46,9 @@ public class SheetsQuickstart extends Application {
     private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
     private static final String TOKENS_DIRECTORY_PATH = "tokens";
     private static final String KIND_OF_EXPENSE_COLUMN_NAME = "Kind";
+    private static final String PRICE_IN_OF_EXPENSE_COLUMN_NAME = "Price in";
+    private static final String PRICE_OUT_OF_EXPENSE_COLUMN_NAME = "Price out";
+    private static final double VALUE_OF_THE_EXPENSE = 0D;
 
     /**
      * Global instance of the scopes required by this quickstart.
@@ -115,10 +118,21 @@ public class SheetsQuickstart extends Application {
         launch();
     }
 
+    public static double obtainTheNumericValueOfTheCell(CellData cell) {
+        return Double.valueOf(cell.getFormattedValue().replace(",", ""));
+    }
+
     public static List<RowData> obtainTheRowsOfTheSpreadsheet(Spreadsheet spreadsheet) {
         Sheet sheet = spreadsheet.getSheets().get(0);
         GridData gridData = sheet.getData().get(0);
         return gridData.getRowData();
+    }
+
+    public static boolean isTheDataInTheCell(CellData cell) {
+        return !cell.isEmpty() &&
+               !isTheCellStruckthrough(cell) &&
+               cell.getFormattedValue() != null &&
+               !cell.getFormattedValue().isEmpty();
     }
 
     public static boolean isTheCellStruckthrough(CellData cell) {
@@ -184,49 +198,36 @@ public class SheetsQuickstart extends Application {
         Map<String, Double> valuesOfThePieChart = new HashMap<>();
         Set<String> kindsOfTheExpense = findTheKindsOfTheExpense(spreadsheet);
         for (String kindOfTheExpense : kindsOfTheExpense) {
-            valuesOfThePieChart.put(kindOfTheExpense, 0D);
+            valuesOfThePieChart.put(kindOfTheExpense, VALUE_OF_THE_EXPENSE);
         }
         List<String> nameOfTheColumns = obtainTheNameOfTheColumns(spreadsheet);
-        int kindOfTheExpenseColumnIndex = nameOfTheColumns.indexOf("Kind");
-        int priceInOfTheExpenseColumnIndex = nameOfTheColumns.indexOf("Price in");
-        int priceOutOfTheExpenseColumnIndex = nameOfTheColumns.indexOf("Price out");
-        Sheet sheet = spreadsheet.getSheets().get(0);
-        GridData gridData = sheet.getData().get(0);
-        List<RowData> rows = gridData.getRowData();
+        int kindOfTheExpenseColumnIndex = nameOfTheColumns.indexOf(KIND_OF_EXPENSE_COLUMN_NAME);
+        int priceInOfTheExpenseColumnIndex = nameOfTheColumns.indexOf(PRICE_IN_OF_EXPENSE_COLUMN_NAME);
+        int priceOutOfTheExpenseColumnIndex = nameOfTheColumns.indexOf(PRICE_OUT_OF_EXPENSE_COLUMN_NAME);
+        List<RowData> rows = obtainTheRowsOfTheSpreadsheet(spreadsheet);;
         boolean foundTheFirstRow = false;
         for (RowData row : rows) {
-            List<CellData> rowData = row.getValues();
-            if (rowData != null) {
+            List<CellData> cells = row.getValues();
+            if (cells != null) {
                 if (!foundTheFirstRow) {
-                    boolean isTheRowStruckthrough = true;
-                    for (CellData cellData : rowData) {
-                        if (cellData.getEffectiveFormat() != null && !cellData.getEffectiveFormat().getTextFormat().getStrikethrough()) {
-                            isTheRowStruckthrough = false;
-                            break;
-                        }
-                    }
-                    if (!isTheRowStruckthrough) {
+                    if (!isTheRowStruckthrough(cells)) {
                         foundTheFirstRow = true;
                         continue;
                     }
                 }
-                if (rowData.size() > kindOfTheExpenseColumnIndex) {
-                    CellData cellData = rowData.get(kindOfTheExpenseColumnIndex);
-                    if (cellData.getEffectiveFormat() != null && !cellData.getEffectiveFormat().getTextFormat().getStrikethrough()) {
-                        String kindOfTheExpense = cellData.getFormattedValue();
-                        Double value = valuesOfThePieChart.get(kindOfTheExpense);
-                        cellData = rowData.get(priceInOfTheExpenseColumnIndex);
-                        if (cellData.getEffectiveFormat() != null && !cellData.getEffectiveFormat().getTextFormat().getStrikethrough() && cellData.getFormattedValue() != null && !cellData.getFormattedValue().isEmpty()) {
-                            Double priceInOfTheExpense = Double.valueOf(cellData.getFormattedValue().replace(",", ""));
-                            value += priceInOfTheExpense;
-                        }
-                        cellData = rowData.get(priceOutOfTheExpenseColumnIndex);
-                        if (cellData.getEffectiveFormat() != null && !cellData.getEffectiveFormat().getTextFormat().getStrikethrough() && cellData.getFormattedValue() != null && !cellData.getFormattedValue().isEmpty()) {
-                            Double priceOutOfTheExpense = Double.valueOf(cellData.getFormattedValue().replace(",", ""));
-                            value += priceOutOfTheExpense;
-                        }
-                        valuesOfThePieChart.put(kindOfTheExpense, value);
+                CellData cell = cells.get(kindOfTheExpenseColumnIndex);
+                if (isTheDataInTheCell(cell)) {
+                    String kindOfTheExpense = cell.getFormattedValue();
+                    Double value = valuesOfThePieChart.get(kindOfTheExpense);
+                    cell = cells.get(priceInOfTheExpenseColumnIndex);
+                    if (isTheDataInTheCell(cell)) {
+                        value += obtainTheNumericValueOfTheCell(cell);
                     }
+                    cell = cells.get(priceOutOfTheExpenseColumnIndex);
+                    if (isTheDataInTheCell(cell)) {
+                        value += obtainTheNumericValueOfTheCell(cell);
+                    }
+                    valuesOfThePieChart.put(kindOfTheExpense, value);
                 }
             }
         }

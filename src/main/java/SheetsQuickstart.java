@@ -49,6 +49,11 @@ public class SheetsQuickstart extends Application {
     private static final String PRICE_IN_OF_EXPENSE_COLUMN_NAME = "Price in";
     private static final String PRICE_OUT_OF_EXPENSE_COLUMN_NAME = "Price out";
     private static final double VALUE_OF_THE_EXPENSE = 0D;
+    private static final String SPREADSHEET_ID = "1yfUiM2l0mJLdDUY3T1meGf9G7GHVjcKhzqCp2MRPVFk";
+    private static final String TITLE_OF_THE_PIECHART = "Expenses";
+    private static final String SPREADSHEET_RANGE_FORMAT_STRING = "Sheet%d!A:G";
+    private static final double WIDTH_OF_THE_SCENE = 5000D;
+    private static final double HEIGHT_OF_THE_SCENE = 3000D;
 
     /**
      * Global instance of the scopes required by this quickstart.
@@ -112,6 +117,10 @@ public class SheetsQuickstart extends Application {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static String obtainTheRangeOfTheSpreadsheet(int sheetNumber) {
+        return String.format(SPREADSHEET_RANGE_FORMAT_STRING, sheetNumber);
     }
 
     public static void displayThePieChart() {
@@ -269,39 +278,41 @@ public class SheetsQuickstart extends Application {
     }
 
     @Override
-    public void start(Stage stage) throws IOException, GeneralSecurityException {
-        // Build a new authorized API client service.
-        final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-        final String spreadsheetId = "1yfUiM2l0mJLdDUY3T1meGf9G7GHVjcKhzqCp2MRPVFk";
-        Sheets service =
-                new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
-                        .setApplicationName(APPLICATION_NAME)
-                        .build();
-        List<PieChart> pieCharts = new ArrayList<>();
-        int numberOfSheets = findTheNumberOfSheetsInTheSpreadsheet(spreadsheetId);
-        for (int sheetNumber = 1; sheetNumber <= numberOfSheets; sheetNumber++) {
-            final String range = String.format("Sheet%d!A:G", sheetNumber);
-            Spreadsheet spreadsheet = service.spreadsheets()
-                    .get(spreadsheetId)
-                    .setRanges(List.of(range))
-                    .setIncludeGridData(true)
-                    .execute();
-            Map<String, Double> valuesOfThePieChart = findTheValuesOfThePieChart(spreadsheet);
-            PieChart.Data pieChartData [] = new PieChart.Data[valuesOfThePieChart.size()];
-            int index = 0;
-            for (String key : valuesOfThePieChart.keySet()) {
-                double value = valuesOfThePieChart.get(key);
-                pieChartData[index] = new PieChart.Data(key, value);
-                index++;
+    public void start(Stage stage) {
+        try {
+            final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
+            Sheets service = new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
+                                       .setApplicationName(APPLICATION_NAME)
+                                       .build();
+            List<PieChart> pieCharts = new ArrayList<>();
+            int numberOfSheets = findTheNumberOfSheetsInTheSpreadsheet(SPREADSHEET_ID);
+            for (int sheetNumber = 1; sheetNumber <= numberOfSheets; sheetNumber++) {
+                Spreadsheet spreadsheet = service.spreadsheets()
+                                                 .get(SPREADSHEET_ID)
+                                                 .setRanges(List.of(obtainTheRangeOfTheSpreadsheet(sheetNumber)))
+                                                 .setIncludeGridData(true)
+                                                 .execute();
+                Map<String, Double> valuesOfThePieChart = findTheValuesOfThePieChart(spreadsheet);
+                PieChart.Data pieChartData [] = new PieChart.Data[valuesOfThePieChart.size()];
+                int index = 0;
+                for (String key : valuesOfThePieChart.keySet()) {
+                    double value = valuesOfThePieChart.get(key);
+                    pieChartData[index] = new PieChart.Data(key, value);
+                    index++;
+                }
+                pieCharts.add(new PieChart(FXCollections.observableArrayList(pieChartData)));
             }
-            pieCharts.add(new PieChart(FXCollections.observableArrayList(pieChartData)));
+            VBox vbox = new VBox();
+            for (PieChart pieChart: pieCharts){
+                vbox.getChildren().add(pieChart);
+            }
+            stage.setTitle(TITLE_OF_THE_PIECHART);
+            stage.setScene(new Scene(vbox, WIDTH_OF_THE_SCENE, HEIGHT_OF_THE_SCENE));
+            stage.show();
+        } catch (GeneralSecurityException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        VBox vbox = new VBox();
-        for (PieChart pieChart: pieCharts){
-            vbox.getChildren().add(pieChart);
-        }
-        stage.setTitle("Expenses");
-        stage.setScene(new Scene(vbox, 5000, 3000));
-        stage.show();
     }
 }

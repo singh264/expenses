@@ -1,8 +1,7 @@
-credentials.json
-build
-dataWithTheStrikethroughInTheSpreadsheet.txt
-.gradle
-gradle
-.idea
-javafx-sdk-19-x64
-tokens
+.DS_Store
+.gradle/
+.idea/
+build/
+data/
+gradle/
+output/

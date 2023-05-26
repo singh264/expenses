@@ -5,17 +5,22 @@ import android.os.Bundle
 import android.widget.DatePicker
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -43,14 +48,59 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun App() {
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
-        ExpenseForm()
+        var expensesEnabled by rememberSaveable { mutableStateOf(true) }
+        Scaffold(
+            bottomBar = {
+                ExpenseBottomNavigationBar(
+                    onExpensesClicked = { expensesEnabled =  true },
+                    onResultsClicked = { expensesEnabled =  false }
+                ) }
+        ) { padding ->
+            if (expensesEnabled) {
+                ExpenseForm()
+            }
+            else {
+                ResultsPage()
+            }
+
+        }
     }
+}
+
+@Composable
+fun ExpenseBottomNavigationBar(
+    onExpensesClicked: () -> Unit,
+    onResultsClicked: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    NavigationBar(
+        modifier = modifier.background(MaterialTheme.colorScheme.background),
+    ) {
+        NavigationBarItem(
+            selected = true,
+            onClick = onExpensesClicked,
+            icon = { Icon(Icons.Default.Home, contentDescription = null)},
+            label = { Text(text = "Expense")}
+        )
+        NavigationBarItem(
+            selected = true,
+            onClick = onResultsClicked,
+            icon = { Icon(Icons.Default.Menu, contentDescription = null)},
+            label = { Text(text = "Results")}
+        )
+    }
+}
+
+@Composable
+fun ResultsPage(modifier: Modifier = Modifier) {
+    Text(text = "Results page")
 }
 
 @Composable
@@ -270,4 +320,22 @@ fun ExpenseFormPreview() {
     ExpensesTheme {
         ExpenseForm()
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ExpenseBottomNavigationBarPreview() {
+    var expensesEnabled by rememberSaveable { mutableStateOf(false) }
+    ExpensesTheme {
+        ExpenseBottomNavigationBar(
+            onExpensesClicked = { expensesEnabled = true },
+            onResultsClicked = { expensesEnabled = false }
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ResultsPagePreview() {
+    ResultsPage()
 }

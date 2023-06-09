@@ -8,6 +8,7 @@ data class ExpenseUiState (
     val description: String = "",
     val kind: String = "",
     val price: String = "",
+    val isIncome: Boolean = false,
     val actionEnabled: Boolean = false
 )
 
@@ -16,7 +17,8 @@ fun ExpenseUiState.toExpense(): Expense = Expense(
     date = date,
     description = description,
     kind = kind,
-    price = price.toDoubleOrNull()?: 0.0
+    price = price.toDoubleOrNull()?: 0.0,
+    isIncome = isIncome
 )
 
 fun ExpenseUiState.isValid(): Boolean {

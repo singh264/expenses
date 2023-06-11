@@ -16,6 +16,8 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
@@ -37,16 +39,22 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ResultsScreen(
-    viewModel: ExpenseEntryViewModel = viewModel(factory = AppViewModelProvider.Factory)
-    ) {
+    viewModel: ExpenseEntryViewModel = viewModel(factory = AppViewModelProvider.Factory),
+    modifier: Modifier = Modifier
+) {
     ExpensesTheme {
-        Surface(color = MaterialTheme.colorScheme.primary) {
-            Scaffold(
-                topBar = { ResultsScreenTopBar() }
-            ) { padding ->
-                ResultsScreenBody(
-                    expenses = viewModel.getExpenses(),
-                    modifier = Modifier.padding(padding))
+        Column(
+            modifier = modifier.semantics { contentDescription = "Results Screen" }
+        ) {
+            Surface(color = MaterialTheme.colorScheme.primary) {
+                Scaffold(
+                    topBar = { ResultsScreenTopBar() }
+                ) { padding ->
+                    ResultsScreenBody(
+                        expenses = viewModel.getExpenses(),
+                        modifier = Modifier.padding(padding)
+                    )
+                }
             }
         }
     }

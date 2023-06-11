@@ -25,6 +25,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -36,8 +38,9 @@ import kotlinx.coroutines.launch
 import java.util.Calendar
 
 @Composable
-fun ExpenseScreen(
+fun ExpensesScreen(
     viewModel: ExpenseEntryViewModel = viewModel(factory = AppViewModelProvider.Factory),
+    modifier: Modifier = Modifier
 ) {
     val coroutineScope: CoroutineScope = rememberCoroutineScope()
     val calendar = Calendar.getInstance()
@@ -53,20 +56,24 @@ fun ExpenseScreen(
         }, expenseYear, expenseMonth, expenseDay
     )
 
-    ExpenseScreenBody(
-        expenseDate = expenseDate,
-        onExpenseFormSaveButtonClick =  {
-            coroutineScope.launch {
-                viewModel.saveExpense()
-                viewModel.resetUiState()
-                expenseDate = ""
-            }
-        },
-        datePickerDialog = datePickerDialog,
-        expenseUiState = viewModel.expenseUiState,
-        onExpenseValueChange = viewModel::updateUiState,
-        expenses = viewModel.getExpenses()
-    )
+    Column(
+        modifier = modifier.semantics { contentDescription = "Expenses Screen" }
+    ) {
+        ExpenseScreenBody(
+            expenseDate = expenseDate,
+            onExpenseFormSaveButtonClick =  {
+                coroutineScope.launch {
+                    viewModel.saveExpense()
+                    viewModel.resetUiState()
+                    expenseDate = ""
+                }
+            },
+            datePickerDialog = datePickerDialog,
+            expenseUiState = viewModel.expenseUiState,
+            onExpenseValueChange = viewModel::updateUiState,
+            expenses = viewModel.getExpenses()
+        )
+    }
 }
 
 @Composable
@@ -76,7 +83,8 @@ fun ExpenseScreenBody(
     datePickerDialog: DatePickerDialog,
     expenseUiState: ExpenseUiState,
     onExpenseValueChange: (ExpenseUiState) -> Unit,
-    expenses: List<Expense>
+    expenses: List<Expense>,
+    modifier: Modifier = Modifier
 ) {
     Column (
         horizontalAlignment = Alignment.CenterHorizontally

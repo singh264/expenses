@@ -29,7 +29,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.expenses.R
 import com.example.expenses.data.Expense
 import com.example.expenses.ui.AppViewModelProvider
-import com.example.expenses.ui.expense.ExpenseEntryViewModel
+import com.example.expenses.ui.expenses.ExpenseEntryViewModel
 import com.example.expenses.ui.theme.ExpensesTheme
 import com.example.expenses.ui.theme.*
 import com.github.mikephil.charting.charts.PieChart

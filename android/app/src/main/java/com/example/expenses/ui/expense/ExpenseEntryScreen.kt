@@ -2,6 +2,7 @@ package com.example.expenses.ui.expense
 
 import android.app.DatePickerDialog
 import android.widget.DatePicker
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -9,15 +10,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -30,12 +32,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.expenses.ui.AppViewModelProvider
 import com.example.expenses.ui.theme.ExpensesTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.util.Calendar
+import java.util.Currency
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -102,7 +107,8 @@ fun ExpenseEntryBody(
 ) {
     Column (
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = modifier.padding(16.dp)
     ) {
         ExpenseFormDate(
             expenseDate = expenseDate,
@@ -140,16 +146,29 @@ fun ExpenseFormDate(
     Row(
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(
-            Icons.Default.Menu,
-            contentDescription = null
-        )
-        Text(text = "$expenseDate")
-        Button(
+        OutlinedButton(
             onClick = onButtonClick,
             modifier = modifier.fillMaxWidth()
         ) {
-            Text(text = "Select date")
+            Icon(
+                Icons.Default.DateRange,
+                contentDescription = null
+            )
+            if (expenseDate.isNotBlank()) {
+                Text(
+                    text = "$expenseDate",
+                    modifier = modifier
+                        .padding(horizontal = 8.dp)
+                        .fillMaxWidth())
+            }
+            else {
+                Text(
+                    text = "Select date",
+                    modifier = modifier
+                        .padding(horizontal = 8.dp)
+                        .fillMaxWidth()
+                )
+            }
         }
     }
 }
@@ -164,15 +183,13 @@ fun ExpenseFormDescription(
     Row(
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(
-            Icons.Default.Menu,
-            contentDescription = null
-        )
-        TextField(
+        OutlinedTextField(
             value = expenseUiState.description,
             onValueChange = { onExpenseValueChange(expenseUiState.copy(description = it)) },
-            label = { Text("Enter expense description") },
-            modifier = modifier.fillMaxWidth()
+            label = { Text(text = "Expense Description *") },
+            modifier = modifier.fillMaxWidth(),
+            enabled = true,
+            singleLine = true
         )
     }
 }
@@ -187,15 +204,13 @@ fun ExpenseFormKind(
     Row(
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(
-            Icons.Default.Menu,
-            contentDescription = null
-        )
-        TextField(
+        OutlinedTextField(
             value = expenseUiState.kind,
             onValueChange = { onExpenseValueChange(expenseUiState.copy(kind = it)) },
-            label = { Text("Enter expense kind") },
-            modifier = modifier.fillMaxWidth()
+            label = { Text(text = "Expense Kind *") },
+            modifier = modifier.fillMaxWidth(),
+            enabled = true,
+            singleLine = true
         )
     }
 }
@@ -210,16 +225,15 @@ fun ExpenseFormPrice(
     Row(
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(
-            Icons.Default.Menu,
-            contentDescription = null
-        )
-        TextField(
+        OutlinedTextField(
             value = expenseUiState.price,
             onValueChange = { onExpenseValueChange(expenseUiState.copy(price = it)) },
-            label = { Text("Enter expense price") },
+            label = { Text(text = "Expense Price *") },
+            leadingIcon = { Text(Currency.getInstance(Locale.getDefault()).symbol) },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             modifier = modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            enabled = true,
+            singleLine = true
         )
     }
 }
@@ -233,14 +247,13 @@ fun ExpenseFormIsIncome(
     Row(
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(
-            Icons.Default.Menu,
-            contentDescription = null
-        )
-        Text(text = "Is Income?")
         Checkbox(
             checked = expenseUiState.isIncome,
             onCheckedChange = { onExpenseValueChange(expenseUiState.copy(isIncome = it)) }
+        )
+        Text(
+            text = "Is Income?",
+            modifier.fillMaxWidth()
         )
     }
 }
@@ -248,11 +261,13 @@ fun ExpenseFormIsIncome(
 @Composable
 fun ExpenseFormSaveButton(
     onClick: () -> Unit,
-    expenseUiState: ExpenseUiState
+    expenseUiState: ExpenseUiState,
+    modifier: Modifier = Modifier
 ) {
     Button(
         onClick = onClick,
-        enabled = expenseUiState.actionEnabled
+        enabled = expenseUiState.actionEnabled,
+        modifier = modifier.fillMaxWidth()
     ) {
         Text(text = "Save")
     }
@@ -274,9 +289,20 @@ fun ExpenseScreenBodyPreview() {
 
 @Preview(showBackground = true)
 @Composable
-fun ExpenseFormDatePreview() {
+fun ExpenseFormDateWithoutDatePreview() {
     ExpensesTheme {
         var expenseDate by rememberSaveable { mutableStateOf("") }
+        ExpenseFormDate(
+            expenseDate = expenseDate,
+            onButtonClick = { expenseDate = "01/01/2023" })
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ExpenseFormDateWithDatePreview() {
+    ExpensesTheme {
+        var expenseDate by rememberSaveable { mutableStateOf("12/5/2023") }
         ExpenseFormDate(
             expenseDate = expenseDate,
             onButtonClick = { expenseDate = "01/01/2023" })

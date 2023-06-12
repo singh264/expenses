@@ -10,17 +10,14 @@ import androidx.compose.material.*
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
@@ -34,6 +31,7 @@ import com.example.expenses.ui.theme.ExpensesTheme
 import com.example.expenses.ui.theme.*
 import com.github.mikephil.charting.charts.PieChart
 import com.github.mikephil.charting.components.Legend
+import java.lang.Math.abs
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,18 +41,18 @@ fun ResultsScreen(
     modifier: Modifier = Modifier
 ) {
     ExpensesTheme {
-        Column(
-            modifier = modifier.semantics { contentDescription = "Results Screen" }
-        ) {
-            Surface(color = MaterialTheme.colorScheme.primary) {
-                Scaffold(
-                    topBar = { ResultsScreenTopBar() }
-                ) { padding ->
-                    ResultsScreenBody(
-                        expenses = viewModel.getExpenses(),
-                        modifier = Modifier.padding(padding)
-                    )
-                }
+        Scaffold(
+            topBar = { ResultsScreenTopBar() }
+        ) { padding ->
+            Column(
+                modifier = modifier
+                    .padding(padding)
+                    .semantics { contentDescription = "Results Screen" }
+            ) {
+                ResultsBody(
+                    expenses = viewModel.getExpenses(),
+                    modifier = modifier
+                )
             }
         }
     }
@@ -75,37 +73,75 @@ fun ResultsScreenTopBar() {
 }
 
 @Composable
-fun ResultsScreenBody(
+fun ResultsBody(
     expenses: List<Expense>,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp),
         ) {
+        if (expenses.isEmpty()) {
             Text(
-                text = "Expenses",
-                style = TextStyle.Default,
-                fontFamily = FontFamily.Default,
-                fontStyle = FontStyle.Normal,
-                fontSize = 20.sp
+                text = "No expenses found",
+                modifier = modifier.align(Alignment.Start)
             )
-
+        }
+        else {
             PieChart(
                 expenses = expenses,
                 modifier = modifier
             )
-
+            ResultsHeader(modifier)
             LazyColumn {
                 items(getExpensesSummaryData(expenses)) { data ->
-                    Text(text = "${data.expenseKind}: $${data.value}")
+                    Row {
+                        Text(text = "${data.expenseKind}", modifier = modifier.weight(1.5f))
+                        val isDataValueNegative = data.value < 0
+                        Text(
+                            text =
+                                if (isDataValueNegative) {
+                                    "-$${abs(data.value)}"
+                                } else {
+                                    "$${data.value}"
+                                },
+                            color = if (isDataValueNegative) Color.Red else Color.Green,
+                            modifier = modifier.weight(1.0f)
+                        )
+                    }
+                    Divider()
                 }
             }
+            Spacer(modifier = modifier.padding(16.dp))
+            val netIncome = getNetIncome(expenses)
+            val isNetIncomeNegative = netIncome < 0
+            Text(
+                text =
+                    if (isNetIncomeNegative) {
+                        "The net income is -$${abs(getNetIncome(expenses))}"
+                    } else {
+                        "The net income is $${getNetIncome(expenses)}"
+                    },
+                modifier = modifier.align(Alignment.Start)
+            )
+        }
+    }
+}
 
-            Text(text = "")
-            Text(text = "The net income is $${getNetIncome(expenses)}")
+@Composable
+fun ResultsHeader(modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        headerList.forEach { header ->
+            Text(
+                text = header.label,
+                modifier = modifier.weight(header.weight),
+                style = MaterialTheme.typography.titleSmall
+            )
         }
     }
 }
@@ -115,13 +151,7 @@ fun PieChart(
     expenses: List<Expense>,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = Modifier
-            .padding(18.dp)
-            .size(320.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
+    Column(modifier = modifier.size(320.dp)) {
         Crossfade(targetState = expenses) { pieChartData ->
             AndroidView(factory = { context ->
                 PieChart(context).apply {
@@ -131,7 +161,7 @@ fun PieChart(
                     )
                     this.description.isEnabled = false
                     this.isDrawHoleEnabled = false
-                    this.legend.isEnabled = true
+                    this.legend.isEnabled = false
                     this.legend.textSize = 14F
                     this.legend.horizontalAlignment =
                         Legend.LegendHorizontalAlignment.CENTER
@@ -149,6 +179,13 @@ fun PieChart(
     }
 }
 
+private data class ResultsHeader(val label: String, val weight: Float)
+
+private val headerList = listOf(
+    ResultsHeader(label = "Expense Kind", weight = 1.5f),
+    ResultsHeader(label = "Net Amount", weight = 1.0f),
+)
+
 @Preview(showBackground = true)
 @Composable
 fun ResultsScreenTopBarPreview() {
@@ -159,9 +196,9 @@ fun ResultsScreenTopBarPreview() {
 
 @Preview(showBackground = true)
 @Composable
-fun ResultsScreenBodyPreview() {
+fun ResultsScreenBodyWithExpensesPreview() {
     ExpensesTheme {
-        ResultsScreenBody(
+        ResultsBody(
             expenses = listOf(
                 Expense(
                     id = 1,
@@ -196,6 +233,16 @@ fun ResultsScreenBodyPreview() {
                     isIncome = true
                 )
             )
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ResultsScreenBodyWithoutExpensesPreview() {
+    ExpensesTheme {
+        ResultsBody(
+            expenses = listOf()
         )
     }
 }

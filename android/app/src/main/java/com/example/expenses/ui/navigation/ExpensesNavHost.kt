@@ -5,6 +5,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.expenses.ui.expense.ExpenseEntryScreen
 import com.example.expenses.ui.expense.ExpensesScreen
 import com.example.expenses.ui.results.ResultsScreen
 
@@ -19,10 +20,17 @@ fun ExpensesNavHost(
         modifier = modifier
     ) {
         composable(route = Expenses.route) {
-            ExpensesScreen()
+            ExpensesScreen(
+                navigateToExpenseEntry = { navController.navigate(ExpenseEntry.route) }
+            )
         }
         composable(route = Results.route) {
             ResultsScreen()
+        }
+        composable(route = ExpenseEntry.route) {
+            ExpenseEntryScreen(
+                onNavigateUp = { navController.popBackStack() }
+            )
         }
     }
 }

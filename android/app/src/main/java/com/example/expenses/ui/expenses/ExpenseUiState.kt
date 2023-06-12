@@ -1,4 +1,4 @@
-package com.example.expenses.ui.expense
+package com.example.expenses.ui.expenses
 
 import com.example.expenses.data.Expense
 

@@ -1,4 +1,4 @@
-package com.example.expenses.ui.expense
+package com.example.expenses.ui.expenses
 
 import android.app.DatePickerDialog
 import android.widget.DatePicker

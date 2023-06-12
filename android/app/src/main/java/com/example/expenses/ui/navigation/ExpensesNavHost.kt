@@ -5,8 +5,8 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.expenses.ui.expense.ExpenseEntryScreen
-import com.example.expenses.ui.expense.ExpensesScreen
+import com.example.expenses.ui.expenses.ExpenseEntryScreen
+import com.example.expenses.ui.expenses.ExpensesScreen
 import com.example.expenses.ui.results.ResultsScreen
 
 @Composable

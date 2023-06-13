@@ -26,7 +26,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.expenses.R
 import com.example.expenses.data.Expense
 import com.example.expenses.ui.AppViewModelProvider
-import com.example.expenses.ui.expenses.ExpenseEntryViewModel
+import com.example.expenses.ui.expenses.ExpensesViewModel
 import com.example.expenses.ui.theme.ExpensesTheme
 import com.example.expenses.ui.theme.*
 import com.github.mikephil.charting.charts.PieChart
@@ -37,7 +37,7 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ResultsScreen(
-    viewModel: ExpenseEntryViewModel = viewModel(factory = AppViewModelProvider.Factory),
+    viewModel: ExpensesViewModel = viewModel(factory = AppViewModelProvider.Factory),
     modifier: Modifier = Modifier
 ) {
     ExpensesTheme {

@@ -34,4 +34,12 @@ object ExpenseEntry : ExpensesDestination {
     override val icon: @Composable () -> Unit = {}
 }
 
+object ExpenseDetails : ExpensesDestination {
+    override val route = "expense_details"
+    override val label = ""
+    override val icon: @Composable () -> Unit = {}
+    const val expenseIdArg = "expenseId"
+    val routeWithArgs = "$route/{$expenseIdArg}"
+}
+
 val bottomNavigationBarScreens = listOf(Expenses, Results)

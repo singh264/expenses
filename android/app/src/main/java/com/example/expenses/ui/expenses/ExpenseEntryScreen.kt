@@ -45,8 +45,8 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExpenseEntryScreen(
-    onNavigateUp: () -> Unit,
-    viewModel: ExpenseEntryViewModel = viewModel(factory = AppViewModelProvider.Factory),
+    navigateBack: () -> Unit,
+    viewModel: ExpensesViewModel = viewModel(factory = AppViewModelProvider.Factory),
     modifier: Modifier = Modifier
 ) {
     val coroutineScope: CoroutineScope = rememberCoroutineScope()
@@ -68,7 +68,7 @@ fun ExpenseEntryScreen(
             TopAppBar(
                 title = { Text(text = "Expense Entry") },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateUp) {
+                    IconButton(onClick = navigateBack) {
                         Icon(
                             imageVector = Icons.Filled.ArrowBack,
                             contentDescription = "Back"
@@ -86,6 +86,7 @@ fun ExpenseEntryScreen(
                     viewModel.saveExpense()
                     viewModel.resetUiState()
                     expenseDate = ""
+                    navigateBack()
                 }
             },
             datePickerDialog = datePickerDialog,

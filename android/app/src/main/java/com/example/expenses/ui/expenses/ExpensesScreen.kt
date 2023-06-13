@@ -1,5 +1,6 @@
 package com.example.expenses.ui.expenses
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -35,7 +36,8 @@ import com.example.expenses.ui.theme.ExpensesTheme
 @Composable
 fun ExpensesScreen(
     navigateToExpenseEntry: () -> Unit,
-    viewModel: ExpenseEntryViewModel = viewModel(factory = AppViewModelProvider.Factory),
+    navigateToExpenseUpdate: (Int) -> Unit,
+    viewModel: ExpensesViewModel = viewModel(factory = AppViewModelProvider.Factory),
     modifier: Modifier = Modifier
 ) {
     Scaffold(
@@ -60,6 +62,7 @@ fun ExpensesScreen(
         ) {
             ExpenseBody(
                 expenses = viewModel.getExpenses(),
+                onExpenseClick = { navigateToExpenseUpdate(it.id) },
                 modifier = modifier
             )
         }
@@ -82,6 +85,7 @@ fun ExpensesScreenTopBar() {
 @Composable
 fun ExpenseBody(
     expenses: List<Expense>,
+    onExpenseClick: (Expense) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column (
@@ -94,8 +98,11 @@ fun ExpenseBody(
         else {
             ExpenseListHeader(modifier)
             LazyColumn {
-                items(expenses) { expense ->
-                    Row {
+                items(
+                    items = expenses,
+                    key = { it.id }
+                ) { expense ->
+                    Row (modifier = modifier.clickable { onExpenseClick(expense) } ) {
                         Text(text = "${expense.date}", modifier = modifier.weight(1.0f))
                         Text(text = "${expense.description}", modifier = modifier.weight(1.5f))
                         Text(text = "${expense.kind}", modifier = modifier.weight(1.0f))
@@ -183,7 +190,8 @@ fun ExpenseBodyWithExpensesPreview() {
                     kind="Job",
                     price=25.0,
                     isIncome=true)
-            )
+            ),
+            onExpenseClick = {}
         )
     }
 }
@@ -202,7 +210,8 @@ private val headerList = listOf(
 fun ExpenseBodyWithoutExpensesPreview() {
     ExpensesTheme {
         ExpenseBody(
-            expenses = listOf()
+            expenses = listOf(),
+            onExpenseClick = {}
         )
     }
 }

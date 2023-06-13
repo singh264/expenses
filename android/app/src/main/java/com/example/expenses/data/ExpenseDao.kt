@@ -6,7 +6,6 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
-import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ExpenseDao {
@@ -23,5 +22,5 @@ interface ExpenseDao {
     fun getAllExpenses(): List<Expense>
 
     @Query("SELECT * FROM expenses WHERE id = :id")
-    fun getExpense(id: Int): Flow<Expense>
+    fun getExpense(id: Int): Expense
 }
